@@ -37,7 +37,7 @@
         ];
 
         const PALETTES = [
-            { name: "Modern",   colors: ["#5B4FD9","#8B82F0","#B8B2F7","#A8EDDC","#60D6C4","#F9A8D4","#FCD34D","#FF6B6B","#93C5FD"] },
+            { name: "Modern",   colors: ["#3B82F6","#EF4444","#B8B2F7","#A8EDDC","#60D6C4","#F9A8D4","#FCD34D","#5B4FD9","#93C5FD"] },
             { name: "Retro",    colors: ["#E63946","#457B9D","#1D3557","#F4A261","#2A9D8F","#E9C46A","#264653","#F77F00","#8D99AE"] },
             { name: "Erdő",     colors: ["#2D6A4F","#40916C","#52B788","#74C69D","#95D5B2","#B7E4C7","#D8F3DC","#1B4332","#004B23"] },
             { name: "Napfény",  colors: ["#FF9F1C","#FFBF69","#FFFFFF","#CBF3F0","#2EC4B6","#FF5400","#FF0054","#9E0059","#FFD60A"] },
@@ -71,9 +71,11 @@
             const [nPos, setNPos] = useState("ja");
             const [showN, setShowN] = useState(true);
             const [showPct, setShowPct] = useState(true);
+            
+            // Itt állítottam át az alapértelmezett színeket Kékre és Pirosra! 🎨
             const [rows, setRows] = useState([
-                { label: "Budapest", pct: "70", color: "#5B4FD9" },
-                { label: "Vidék", pct: "30", color: "#A8EDDC" }
+                { label: "Budapest", pct: "70", color: "#3B82F6" }, // Kék
+                { label: "Vidék", pct: "30", color: "#EF4444" }    // Piros
             ]);
 
             const totalSum = rows.reduce((acc, row) => acc + (parseFloat(row.pct) || 0), 0);
@@ -221,7 +223,7 @@
             return (
                 <div style={{display: "flex", gap: "40px", maxWidth: "1350px", width: "100%", flexWrap: "wrap", justifyContent: "center"}}>
                     
-                    {/* CONTROL PANEL */}
+                    {/* BAL OLDALI VEZÉRLŐPULT */}
                     <div className="card" style={{width: "410px"}}>
                         <div style={{textAlign: "center", marginBottom: "25px"}}>
                             <h1 style={{margin: "0", fontSize: "28px", fontWeight: "900", letterSpacing: "-1px", color: "#1E1B4B"}}>Diagram Designer Pro</h1>
@@ -345,7 +347,7 @@
                         }} style={{width: "100%", padding: "20px", background: "#5B4FD9", color: "#fff", borderRadius: "22px", fontWeight: "900", fontSize: "17px", boxShadow: "0 10px 25px rgba(91, 79, 217, 0.3)"}}>⬇ HD PNG LETÖLTÉSE</button>
                     </div>
 
-                    {/* PREVIEW */}
+                    {/* JOBB OLDALI ELŐNÉZET */}
                     <div className="card" style={{flex: 1, minWidth: "500px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", alignSelf: "flex-start"}}>
                         <canvas ref={canvasRef} style={{width: "700px", height: "500px", maxWidth: "100%", height: "auto"}} />
                         <div style={{position: "absolute", top: 20, right: 25, fontSize: "11px", color: "#CBD5E1", fontWeight: "900", letterSpacing: "1px"}}>ULTRA HD RENDER</div>
