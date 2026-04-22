@@ -40,7 +40,7 @@
             { name: "Modern",   colors: ["#3B82F6","#EF4444","#B8B2F7","#A8EDDC","#60D6C4","#F9A8D4","#FCD34D","#5B4FD9","#93C5FD"] },
             { name: "Retro",    colors: ["#E63946","#457B9D","#1D3557","#F4A261","#2A9D8F","#E9C46A","#264653","#F77F00","#8D99AE"] },
             { name: "Erdő",     colors: ["#2D6A4F","#40916C","#52B788","#74C69D","#95D5B2","#B7E4C7","#D8F3DC","#1B4332","#004B23"] },
-            { name: "Napfény",  colors: ["#FF9F1C","#FFBF69","#FFFFFF","#CBF3F0","#2EC4B6","#FF5400","#FF0054","#9E0059","#FFD60A"] },
+            { name: "Napfény",  colors: ["#FFD000","#FFB300","#FFA000","#FF8F00","#FF6F00","#E65100","#FB8C00","#F57C00","#EF6C00"] },
             { name: "Mélykék",  colors: ["#03045E","#023E8A","#0077B6","#0096C7","#00B4D8","#48CAE4","#90E0EF","#ADE8F4","#E0F2FE"] },
             { name: "Lila",     colors: ["#4C1D95","#5B21B6","#6D28D9","#7C3AED","#8B5CF6","#A78BFA","#C4B5FD","#DDD6FE","#EDE9FE"] },
         ];
@@ -71,11 +71,9 @@
             const [nPos, setNPos] = useState("ja");
             const [showN, setShowN] = useState(true);
             const [showPct, setShowPct] = useState(true);
-            
-            // Itt állítottam át az alapértelmezett színeket Kékre és Pirosra! 🎨
             const [rows, setRows] = useState([
-                { label: "Budapest", pct: "70", color: "#3B82F6" }, // Kék
-                { label: "Vidék", pct: "30", color: "#EF4444" }    // Piros
+                { label: "Budapest", pct: "70", color: "#3B82F6" },
+                { label: "Vidék", pct: "30", color: "#EF4444" }
             ]);
 
             const totalSum = rows.reduce((acc, row) => acc + (parseFloat(row.pct) || 0), 0);
@@ -100,7 +98,6 @@
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 const ctx = canvas.getContext("2d");
-                
                 const scale = 2; 
                 const width = 700;
                 const height = 500;
@@ -120,7 +117,25 @@
                 const total = pcts.reduce((a, b) => a + b, 0);
                 const norm = total > 0 ? pcts.map(p => p / total) : pcts.map(() => 1 / valid.length);
                 const colors = valid.map(r => r.color);
-                const label = (v) => showPct ? `${v}%` : v;
+                const labelText = (v) => showPct ? `${v}%` : v;
+
+                const wrapText = (text, x, y, maxWidth, lineHeight) => {
+                    const words = text.split(' ');
+                    let line = '';
+                    let currentY = y;
+                    for (let n = 0; n < words.length; n++) {
+                        let testLine = line + words[n] + ' ';
+                        let metrics = ctx.measureText(testLine);
+                        if (metrics.width > maxWidth && n > 0) {
+                            ctx.fillText(line, x, currentY);
+                            line = words[n] + ' ';
+                            currentY += lineHeight;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    ctx.fillText(line, x, currentY);
+                };
 
                 ctx.font = "600 14px 'Inter', sans-serif";
 
@@ -138,7 +153,7 @@
                         const lx = cx + Math.cos(mid) * (r + 45), ly = cy + Math.sin(mid) * (r + 45);
                         ctx.textAlign = Math.cos(mid) > 0 ? "left" : "right";
                         ctx.fillStyle = colors[i];
-                        ctx.fillText(`${valid[i].label} (${label(pcts[i])})`, lx, ly);
+                        wrapText(`${valid[i].label} (${labelText(pcts[i])})`, lx, ly, 140, 16);
                         angle += sweep;
                     });
                     if (chartType === "donut") {
@@ -147,19 +162,20 @@
                     }
                 }
                 else if (chartType === "bar") {
-                    const aW = 400, aH = 250;
+                    const aW = 450, aH = 250;
                     const sp = aW / Math.max(valid.length, 1);
                     const bW = Math.min(sp * 0.7, 60);
                     const startX = (width - (valid.length * sp)) / 2;
                     valid.forEach((row, i) => {
                         const bh = (pcts[i] / maxV) * aH;
                         const bx = startX + i * sp + (sp - bW) / 2;
-                        const by = height - 120 - bh;
+                        const by = height - 130 - bh;
                         ctx.fillStyle = colors[i];
                         ctx.beginPath(); ctx.roundRect(bx, by, bW, bh, [8, 8, 0, 0]); ctx.fill();
                         ctx.textAlign = "center"; ctx.fillStyle = "#1A1A1B";
-                        ctx.fillText(label(pcts[i]), bx + bW/2, by - 12);
-                        ctx.font = "500 12px 'Inter'"; ctx.fillText(row.label, bx + bW/2, height - 90);
+                        ctx.fillText(labelText(pcts[i]), bx + bW/2, by - 12);
+                        ctx.font = "500 12px 'Inter'";
+                        wrapText(row.label, bx + bW/2, height - 100, sp * 0.9, 14);
                         ctx.font = "600 14px 'Inter'";
                     });
                 }
@@ -175,11 +191,11 @@
                         ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.roundRect(PL, by, bw, bH, 8); ctx.fill();
                         ctx.textAlign = "right"; ctx.fillStyle = "#1A1A1B";
                         ctx.fillText(row.label, PL - 20, by + bH/2 + 5);
-                        ctx.textAlign = "left"; ctx.fillText(label(pcts[i]), PL + bw + 15, by + bH/2 + 5);
+                        ctx.textAlign = "left"; ctx.fillText(labelText(pcts[i]), PL + bw + 15, by + bH/2 + 5);
                     });
                 }
                 else if (chartType === "line" || chartType === "scatter") {
-                    const PL=100, PR=100, PT=100, PB=120;
+                    const PL=100, PR=100, PT=100, PB=140;
                     const aW = width-PL-PR, aH = height-PT-PB;
                     const step = valid.length > 1 ? aW / (valid.length - 1) : 0;
                     const startX = valid.length > 1 ? PL : width / 2;
@@ -195,8 +211,9 @@
                         ctx.fillStyle = chartType === "scatter" ? colors[i] : "#fff";
                         ctx.fill(); ctx.strokeStyle = colors[i]; ctx.lineWidth = 3; ctx.stroke();
                         ctx.textAlign = "center"; ctx.fillStyle = "#1A1A1B";
-                        ctx.fillText(label(pcts[i]), x, y - 20);
-                        ctx.font = "500 12px 'Inter'"; ctx.fillText(row.label, x, height - PB + 30);
+                        ctx.fillText(labelText(pcts[i]), x, y - 20);
+                        ctx.font = "500 11px 'Inter'";
+                        wrapText(row.label, x, height - PB + 30, (aW/valid.length)*0.9, 13);
                         ctx.font = "600 14px 'Inter'";
                     });
                 }
@@ -222,8 +239,6 @@
 
             return (
                 <div style={{display: "flex", gap: "40px", maxWidth: "1350px", width: "100%", flexWrap: "wrap", justifyContent: "center"}}>
-                    
-                    {/* BAL OLDALI VEZÉRLŐPULT */}
                     <div className="card" style={{width: "410px"}}>
                         <div style={{textAlign: "center", marginBottom: "25px"}}>
                             <h1 style={{margin: "0", fontSize: "28px", fontWeight: "900", letterSpacing: "-1px", color: "#1E1B4B"}}>Diagram Designer Pro</h1>
@@ -263,14 +278,14 @@
                         <div className="scroll-area">
                             {rows.map((r, i) => (
                                 <div key={i} style={{display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center"}}>
-                                    <div className="color-picker-wrapper" style={{background: r.color}} title="Egyedi szín">
+                                    <div className="color-picker-wrapper" style={{background: r.color}}>
                                         <input type="color" value={r.color} onChange={(e) => {
                                             const nr = [...rows]; nr[i].color = e.target.value; setRows(nr);
                                         }} />
                                     </div>
                                     <input style={inputStyle} value={r.label} onChange={(e) => {
                                         const nr = [...rows]; nr[i].label = e.target.value; setRows(nr);
-                                    }} placeholder="Megnevezés" />
+                                    }} placeholder="Név" />
                                     <input style={{...inputStyle, width: "65px", fontWeight: "bold", textAlign: "center"}} value={r.pct} onChange={(e) => {
                                         const nr = [...rows]; nr[i].pct = e.target.value; setRows(nr);
                                     }} placeholder="%" />
@@ -279,33 +294,26 @@
                             ))}
                         </div>
 
-                        <div style={{
-                            marginBottom: "15px",
-                            padding: "10px 14px",
-                            borderRadius: "14px",
-                            background: totalSum > 100 ? "rgba(220, 38, 38, 0.05)" : "#F9F9FB",
-                            border: "1px solid",
-                            borderColor: totalSum > 100 ? "#DC2626" : "#F0F0F5",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px"
-                        }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <span style={{ fontSize: "13px", fontWeight: "600", color: "#666" }}>Összesen:</span>
-                                <span style={{ 
-                                    fontSize: "16px", 
-                                    fontWeight: "800", 
-                                    color: is100 ? "#16A34A" : "#DC2626" 
-                                }}>
-                                    {totalSum.toFixed(1)}%
-                                </span>
-                            </div>
-                            {totalSum > 100 && (
-                                <div style={{ fontSize: "11px", fontWeight: "700", color: "#DC2626", textAlign: "right" }}>
-                                    ⚠️ Figyelem! Túllépted a 100%-ot!
+                        {showPct && (
+                            <div style={{
+                                marginBottom: "15px", padding: "10px 14px", borderRadius: "14px",
+                                background: totalSum > 100 ? "rgba(220, 38, 38, 0.05)" : "#F9F9FB",
+                                border: "1px solid", borderColor: totalSum > 100 ? "#DC2626" : "#F0F0F5",
+                                display: "flex", flexDirection: "column", gap: "4px"
+                            }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <span style={{ fontSize: "13px", fontWeight: "600", color: "#666" }}>Összesen:</span>
+                                    <span style={{ fontSize: "16px", fontWeight: "800", color: is100 ? "#16A34A" : "#DC2626" }}>
+                                        {totalSum.toFixed(1)}%
+                                    </span>
                                 </div>
-                            )}
-                        </div>
+                                {totalSum > 100 && (
+                                    <div style={{ fontSize: "11px", fontWeight: "700", color: "#DC2626", textAlign: "right" }}>
+                                        ⚠️ Figyelem! Túllépted a 100%-ot!
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <button onClick={() => setRows([...rows, {label: "", pct: "", color: "#CBD5E1"}])} style={{width: "100%", padding: "14px", border: "2px dashed #C7D2FE", borderRadius: "16px", background: "none", color: "#5B4FD9", fontWeight: "800", fontSize: "13px", marginBottom: "10px"}}>+ Új adatsor</button>
 
@@ -324,10 +332,8 @@
                                     <input style={inputStyle} type="text" value={n} onChange={(e) => setN(e.target.value)} placeholder="Minta elemszáma" />
                                     <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px"}}>
                                         {[
-                                            ["bf", "BF (Bal Felső)"],
-                                            ["jf", "JF (Jobb Felső)"],
-                                            ["ba", "BA (Bal Alsó)"],
-                                            ["ja", "JA (Jobb Alsó)"]
+                                            ["bf", "BF (Bal Felső)"], ["jf", "JF (Jobb Felső)"],
+                                            ["ba", "BA (Bal Alsó)"], ["ja", "JA (Jobb Alsó)"]
                                         ].map(([pos, lbl]) => (
                                             <button key={pos} onClick={() => setNPos(pos)} style={{
                                                 padding: "10px 5px", borderRadius: "10px", fontSize: "11px", fontWeight: "800",
@@ -347,12 +353,10 @@
                         }} style={{width: "100%", padding: "20px", background: "#5B4FD9", color: "#fff", borderRadius: "22px", fontWeight: "900", fontSize: "17px", boxShadow: "0 10px 25px rgba(91, 79, 217, 0.3)"}}>⬇ HD PNG LETÖLTÉSE</button>
                     </div>
 
-                    {/* JOBB OLDALI ELŐNÉZET */}
                     <div className="card" style={{flex: 1, minWidth: "500px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", alignSelf: "flex-start"}}>
                         <canvas ref={canvasRef} style={{width: "700px", height: "500px", maxWidth: "100%", height: "auto"}} />
                         <div style={{position: "absolute", top: 20, right: 25, fontSize: "11px", color: "#CBD5E1", fontWeight: "900", letterSpacing: "1px"}}>ULTRA HD RENDER</div>
                     </div>
-
                 </div>
             );
         }
