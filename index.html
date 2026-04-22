@@ -8,17 +8,22 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        body { margin: 0; padding: 0; background: #F0F2F5; font-family: 'Inter', sans-serif; color: #1A1A1B; }
-        #root { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
-        .card { background: #fff; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); padding: 30px; }
+        body { margin: 0; padding: 0; background: #F0F2F5; transition: background 0.3s ease, color 0.3s ease; font-family: 'Inter', sans-serif; color: #1A1A1B; }
+        #root { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 60px 20px 40px; position: relative; }
+        .card { border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); padding: 30px; transition: background 0.3s, color 0.3s; background: #fff; }
         input:focus { border-color: #5B4FD9 !important; outline: none; box-shadow: 0 0 0 3px rgba(91, 79, 217, 0.1); }
         .scroll-area { max-height: 300px; overflow-y: auto; padding-right: 10px; margin-bottom: 10px; border-radius: 12px; }
         button { transition: all 0.2s ease; border: none; cursor: pointer; }
         button:hover { filter: brightness(1.05); transform: translateY(-1px); }
-        .color-picker-wrapper { width: 32px; height: 32px; border-radius: 10px; position: relative; overflow: hidden; cursor: pointer; border: 2px solid #F0F0F5; flex-shrink: 0; }
+        .color-picker-wrapper { width: 32px; height: 32px; border-radius: 10px; position: relative; overflow: hidden; cursor: pointer; border: 2px solid rgba(0,0,0,0.05); flex-shrink: 0; }
         .color-picker-wrapper input { position: absolute; top: -5px; left: -5px; width: 50px; height: 50px; cursor: pointer; opacity: 0; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #E5E3FA; border-radius: 10px; }
+        
+        body.dark-mode { background: #111827 !important; color: #F9FAFB !important; }
+        body.dark-mode .card { background: #1F2937 !important; color: #F9FAFB !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        body.dark-mode input { background: #374151 !important; border-color: #4B5563 !important; color: #fff !important; }
+        body.dark-mode .scroll-area::-webkit-scrollbar-thumb { background: #4B5563; }
     </style>
 </head>
 <body>
@@ -66,15 +71,25 @@
 
         function App() {
             const canvasRef = useRef(null);
+            const [isDarkMode, setIsDarkMode] = useState(false);
             const [chartType, setChartType] = useState("donut");
             const [n, setN] = useState("200");
             const [nPos, setNPos] = useState("ja");
             const [showN, setShowN] = useState(true);
             const [showPct, setShowPct] = useState(true);
+            const [downloadMode, setDownloadMode] = useState("white"); 
             const [rows, setRows] = useState([
                 { label: "Budapest", pct: "70", color: "#3B82F6" },
                 { label: "Vidék", pct: "30", color: "#EF4444" }
             ]);
+
+            useEffect(() => {
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }, [isDarkMode]);
 
             const totalSum = rows.reduce((acc, row) => acc + (parseFloat(row.pct) || 0), 0);
             const is100 = Math.abs(totalSum - 100) < 0.01;
@@ -94,20 +109,33 @@
                 setRows(newRows);
             };
 
-            const draw = useCallback(() => {
+            const draw = useCallback((forExport = false) => {
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 const ctx = canvas.getContext("2d");
                 const scale = 2; 
                 const width = 700;
                 const height = 500;
+                
                 canvas.width = width * scale;
                 canvas.height = height * scale;
                 ctx.scale(scale, scale);
 
                 ctx.clearRect(0, 0, width, height);
-                ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(0, 0, width, height);
+                
+                let bgStyle = "white";
+                if (forExport) {
+                    if (downloadMode === "white") bgStyle = "white";
+                    else if (downloadMode === "dark") bgStyle = "#1F2937";
+                    else bgStyle = "transparent";
+                } else {
+                    bgStyle = isDarkMode ? "#1F2937" : "white";
+                }
+
+                if (bgStyle !== "transparent") {
+                    ctx.fillStyle = bgStyle;
+                    ctx.fillRect(0, 0, width, height);
+                }
 
                 const valid = rows.filter(r => r.label && r.pct !== "");
                 if (!valid.length) return;
@@ -118,6 +146,7 @@
                 const norm = total > 0 ? pcts.map(p => p / total) : pcts.map(() => 1 / valid.length);
                 const colors = valid.map(r => r.color);
                 const labelText = (v) => showPct ? `${v}%` : v;
+                const textColor = (bgStyle === "white" || (bgStyle === "transparent" && !isDarkMode)) ? "#1A1A1B" : "#F9FAFB";
 
                 const wrapText = (text, x, y, maxWidth, lineHeight) => {
                     const words = text.split(' ');
@@ -148,7 +177,14 @@
                         ctx.beginPath(); ctx.moveTo(cx, cy);
                         ctx.arc(cx, cy, r, angle, angle + sweep);
                         ctx.fillStyle = colors[i]; ctx.fill();
-                        ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.stroke();
+                        
+                        // Körvonal eltávolítása transparent esetén
+                        if (bgStyle !== "transparent") {
+                            ctx.strokeStyle = bgStyle; 
+                            ctx.lineWidth = 3; 
+                            ctx.stroke();
+                        }
+                        
                         const mid = angle + sweep / 2;
                         const lx = cx + Math.cos(mid) * (r + 45), ly = cy + Math.sin(mid) * (r + 45);
                         ctx.textAlign = Math.cos(mid) > 0 ? "left" : "right";
@@ -156,9 +192,20 @@
                         wrapText(`${valid[i].label} (${labelText(pcts[i])})`, lx, ly, 140, 16);
                         angle += sweep;
                     });
+                    
                     if (chartType === "donut") {
-                        ctx.beginPath(); ctx.arc(cx, cy, r * 0.6, 0, 2 * Math.PI);
-                        ctx.fillStyle = "#fff"; ctx.fill();
+                        if (bgStyle === "transparent") {
+                            // Valóban átlátszó lyuk donut-nál
+                            ctx.globalCompositeOperation = 'destination-out';
+                            ctx.beginPath(); ctx.arc(cx, cy, r * 0.6, 0, 2 * Math.PI);
+                            ctx.fillStyle = "rgba(0,0,0,1)";
+                            ctx.fill();
+                            ctx.globalCompositeOperation = 'source-over';
+                        } else {
+                            ctx.beginPath(); ctx.arc(cx, cy, r * 0.6, 0, 2 * Math.PI);
+                            ctx.fillStyle = bgStyle;
+                            ctx.fill();
+                        }
                     }
                 }
                 else if (chartType === "bar") {
@@ -172,7 +219,7 @@
                         const by = height - 130 - bh;
                         ctx.fillStyle = colors[i];
                         ctx.beginPath(); ctx.roundRect(bx, by, bW, bh, [8, 8, 0, 0]); ctx.fill();
-                        ctx.textAlign = "center"; ctx.fillStyle = "#1A1A1B";
+                        ctx.textAlign = "center"; ctx.fillStyle = textColor;
                         ctx.fillText(labelText(pcts[i]), bx + bW/2, by - 12);
                         ctx.font = "500 12px 'Inter'";
                         wrapText(row.label, bx + bW/2, height - 100, sp * 0.9, 14);
@@ -187,9 +234,9 @@
                     valid.forEach((row, i) => {
                         const bw = (pcts[i] / maxV) * aW, bH = 32;
                         const by = startY + i * rowH + (rowH - bH) / 2;
-                        ctx.fillStyle = "#F3F4F6"; ctx.beginPath(); ctx.roundRect(PL, by, aW, bH, 8); ctx.fill();
+                        ctx.fillStyle = isDarkMode ? "#374151" : "#F3F4F6"; ctx.beginPath(); ctx.roundRect(PL, by, aW, bH, 8); ctx.fill();
                         ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.roundRect(PL, by, bw, bH, 8); ctx.fill();
-                        ctx.textAlign = "right"; ctx.fillStyle = "#1A1A1B";
+                        ctx.textAlign = "right"; ctx.fillStyle = textColor;
                         ctx.fillText(row.label, PL - 20, by + bH/2 + 5);
                         ctx.textAlign = "left"; ctx.fillText(labelText(pcts[i]), PL + bw + 15, by + bH/2 + 5);
                     });
@@ -208,9 +255,9 @@
                     valid.forEach((row, i) => {
                         const x = startX + i * step, y = ys[i];
                         ctx.beginPath(); ctx.arc(x, y, chartType === "scatter" ? 14 : 7, 0, Math.PI * 2);
-                        ctx.fillStyle = chartType === "scatter" ? colors[i] : "#fff";
+                        ctx.fillStyle = chartType === "scatter" ? colors[i] : (bgStyle === "transparent" ? (isDarkMode ? "#1F2937" : "#fff") : bgStyle);
                         ctx.fill(); ctx.strokeStyle = colors[i]; ctx.lineWidth = 3; ctx.stroke();
-                        ctx.textAlign = "center"; ctx.fillStyle = "#1A1A1B";
+                        ctx.textAlign = "center"; ctx.fillStyle = textColor;
                         ctx.fillText(labelText(pcts[i]), x, y - 20);
                         ctx.font = "500 11px 'Inter'";
                         wrapText(row.label, x, height - PB + 30, (aW/valid.length)*0.9, 13);
@@ -219,7 +266,7 @@
                 }
 
                 if (showN && n) {
-                    ctx.font = "italic 500 16px 'Inter'"; ctx.fillStyle = "#94A3B8";
+                    ctx.font = "italic 500 16px 'Inter'"; ctx.fillStyle = isDarkMode ? "#94A3B8" : "#94A3B8";
                     const txt = `n = ${n}`; const tw = ctx.measureText(txt).width;
                     let nx = 40, ny = 50;
                     if (nPos === "jf") nx = width - tw - 40;
@@ -227,135 +274,156 @@
                     else if (nPos === "ja") { nx = width - tw - 40; ny = height - 40; }
                     ctx.textAlign = "left"; ctx.fillText(txt, nx, ny);
                 }
-            }, [rows, chartType, n, nPos, showN, showPct]);
+            }, [rows, chartType, n, nPos, showN, showPct, isDarkMode, downloadMode]);
 
             useEffect(() => draw(), [draw]);
+
+            const handleDownload = () => {
+                draw(true); 
+                setTimeout(() => {
+                    const link = document.createElement("a");
+                    link.download = `diagram_nagy_marton.png`;
+                    link.href = canvasRef.current.toDataURL("image/png", 1.0);
+                    link.click();
+                    draw(false); 
+                }, 50);
+            };
 
             const inputStyle = {
                 flex: 1, padding: "10px 14px", borderRadius: "12px",
                 border: "2px solid #F0F0F5", fontSize: "14px", background: "#F9F9FB",
-                fontFamily: "inherit", transition: "0.2s"
+                fontFamily: 'Inter', transition: "0.2s"
             };
 
             return (
-                <div style={{display: "flex", gap: "40px", maxWidth: "1350px", width: "100%", flexWrap: "wrap", justifyContent: "center"}}>
-                    <div className="card" style={{width: "410px"}}>
-                        <div style={{textAlign: "center", marginBottom: "25px"}}>
-                            <h1 style={{margin: "0", fontSize: "28px", fontWeight: "900", letterSpacing: "-1px", color: "#1E1B4B"}}>Diagram Designer Pro</h1>
-                            <div style={{fontSize: "13px", fontWeight: "600", color: "#94A3B8", marginTop: "4px"}}>Készítette: Nagy Márton</div>
-                        </div>
+                <div id="app-container">
+                    <div style={{position: "absolute", top: 30, left: 30, display: "flex", alignItems: "center", gap: "10px", zIndex: 100}}>
+                        <span style={{fontSize: "14px", fontWeight: "700"}}>{isDarkMode ? "🌙" : "☀️"}</span>
+                        <Toggle value={isDarkMode} onChange={setIsDarkMode} />
+                    </div>
 
-                        <SectionLabel>1. Diagram Típus</SectionLabel>
-                        <div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px"}}>
-                            {CHART_TYPES.map(t => (
-                                <button key={t.id} onClick={() => setChartType(t.id)} style={{
-                                    padding: "12px 5px", borderRadius: "16px", fontWeight: "700", fontSize: "12px",
-                                    background: chartType === t.id ? "#5B4FD9" : "#F3F4F6",
-                                    color: chartType === t.id ? "#fff" : "#4B4B5E"
-                                }}>{t.icon} {t.label}</button>
-                            ))}
-                        </div>
+                    <div style={{display: "flex", gap: "40px", maxWidth: "1350px", width: "100%", flexWrap: "wrap", justifyContent: "center"}}>
+                        <div className="card" style={{width: "410px"}}>
+                            <div style={{textAlign: "center", marginBottom: "25px"}}>
+                                <h1 style={{margin: "0", fontSize: "28px", fontWeight: "900", letterSpacing: "-1px", color: isDarkMode ? "#F9FAFB" : "#1E1B4B"}}>Diagram Designer Pro</h1>
+                                <div style={{fontSize: "13px", fontWeight: "600", color: "#94A3B8", marginTop: "4px"}}>Készítette: Nagy Márton</div>
+                            </div>
 
-                        <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-end"}}>
+                            <SectionLabel>1. Diagram Típus</SectionLabel>
+                            <div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px"}}>
+                                {CHART_TYPES.map(t => (
+                                    <button key={t.id} onClick={() => setChartType(t.id)} style={{
+                                        padding: "12px 5px", borderRadius: "16px", fontWeight: "700", fontSize: "12px",
+                                        background: chartType === t.id ? "#5B4FD9" : (isDarkMode ? "#374151" : "#F3F4F6"),
+                                        color: chartType === t.id ? "#fff" : (isDarkMode ? "#94A3B8" : "#4B4B5E")
+                                    }}>{t.icon} {t.label}</button>
+                                ))}
+                            </div>
+
                             <SectionLabel>2. Gyors Paletták</SectionLabel>
-                            <button onClick={reverseColors} style={{padding: "6px 12px", borderRadius: "10px", background: "#F0EEFF", color: "#5B4FD9", fontWeight: "bold", fontSize: "12px", marginBottom: "8px"}}>⇄ Szín csere</button>
-                        </div>
-                        <div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px"}}>
-                            {PALETTES.map((p, i) => (
-                                <button key={i} onClick={() => applyPalette(p)} style={{
-                                    padding: "10px 5px", borderRadius: "14px", background: "#F9F9FB", border: "2px solid #F0F0F5",
-                                    display: "flex", flexDirection: "column", gap: "6px", alignItems: "center"
+                            <div style={{display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px"}}>
+                                {PALETTES.map((p, i) => (
+                                    <button key={i} onClick={() => applyPalette(p)} style={{
+                                        padding: "10px 5px", borderRadius: "14px", background: isDarkMode ? "#374151" : "#F9F9FB", border: "2px solid rgba(0,0,0,0.05)",
+                                        display: "flex", flexDirection: "column", gap: "6px", alignItems: "center"
+                                    }}>
+                                        <div style={{display: "flex", gap: "3px"}}>
+                                            {p.colors.slice(0, 4).map((c, ci) => <div key={ci} style={{width: 7, height: 7, background: c, borderRadius: "50%"}} />)}
+                                        </div>
+                                        <span style={{fontSize: "10px", fontWeight: "800", color: isDarkMode ? "#F9FAFB" : "#666"}}>{p.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <SectionLabel>3. Adatok és Színek</SectionLabel>
+                            <div className="scroll-area">
+                                {rows.map((r, i) => (
+                                    <div key={i} style={{display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center"}}>
+                                        <div className="color-picker-wrapper" style={{background: r.color}}>
+                                            <input type="color" value={r.color} onChange={(e) => {
+                                                const nr = [...rows]; nr[i].color = e.target.value; setRows(nr);
+                                            }} />
+                                        </div>
+                                        <input style={inputStyle} value={r.label} onChange={(e) => {
+                                            const nr = [...rows]; nr[i].label = e.target.value; setRows(nr);
+                                        }} placeholder="Név" />
+                                        <input style={{...inputStyle, width: "65px", fontWeight: "bold", textAlign: "center"}} value={r.pct} onChange={(e) => {
+                                            const nr = [...rows]; nr[i].pct = e.target.value; setRows(nr);
+                                        }} placeholder="%" />
+                                        <button onClick={() => setRows(rows.filter((_, idx) => idx !== i))} style={{fontSize: "24px", color: "#D1D5DB", background: "none"}}>×</button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {showPct && (
+                                <div style={{
+                                    marginBottom: "15px", padding: "10px 14px", borderRadius: "14px",
+                                    background: isDarkMode ? "#374151" : "#F9F9FB",
+                                    border: "1px solid", borderColor: totalSum > 100 ? "#DC2626" : "#F0F0F5",
+                                    display: "flex", flexDirection: "column", gap: "4px"
                                 }}>
-                                    <div style={{display: "flex", gap: "3px"}}>
-                                        {p.colors.slice(0, 4).map((c, ci) => <div key={ci} style={{width: 7, height: 7, background: c, borderRadius: "50%"}} />)}
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <span style={{ fontSize: "13px", fontWeight: "600", color: isDarkMode ? "#94A3B8" : "#666" }}>Összesen:</span>
+                                        <span style={{ fontSize: "16px", fontWeight: "800", color: is100 ? "#16A34A" : "#DC2626" }}>
+                                            {totalSum.toFixed(1)}%
+                                        </span>
                                     </div>
-                                    <span style={{fontSize: "10px", fontWeight: "800", color: "#666"}}>{p.name}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        <SectionLabel>3. Adatok és Egyedi Színek</SectionLabel>
-                        <div className="scroll-area">
-                            {rows.map((r, i) => (
-                                <div key={i} style={{display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center"}}>
-                                    <div className="color-picker-wrapper" style={{background: r.color}}>
-                                        <input type="color" value={r.color} onChange={(e) => {
-                                            const nr = [...rows]; nr[i].color = e.target.value; setRows(nr);
-                                        }} />
-                                    </div>
-                                    <input style={inputStyle} value={r.label} onChange={(e) => {
-                                        const nr = [...rows]; nr[i].label = e.target.value; setRows(nr);
-                                    }} placeholder="Név" />
-                                    <input style={{...inputStyle, width: "65px", fontWeight: "bold", textAlign: "center"}} value={r.pct} onChange={(e) => {
-                                        const nr = [...rows]; nr[i].pct = e.target.value; setRows(nr);
-                                    }} placeholder="%" />
-                                    <button onClick={() => setRows(rows.filter((_, idx) => idx !== i))} style={{fontSize: "24px", color: "#D1D5DB", background: "none"}}>×</button>
+                                    {totalSum > 100 && (
+                                        <div style={{ fontSize: "11px", fontWeight: "700", color: "#DC2626", textAlign: "right" }}>
+                                            ⚠️ Figyelem! Túllépted a 100%-ot!
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
+                            )}
 
-                        {showPct && (
-                            <div style={{
-                                marginBottom: "15px", padding: "10px 14px", borderRadius: "14px",
-                                background: totalSum > 100 ? "rgba(220, 38, 38, 0.05)" : "#F9F9FB",
-                                border: "1px solid", borderColor: totalSum > 100 ? "#DC2626" : "#F0F0F5",
-                                display: "flex", flexDirection: "column", gap: "4px"
-                            }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <span style={{ fontSize: "13px", fontWeight: "600", color: "#666" }}>Összesen:</span>
-                                    <span style={{ fontSize: "16px", fontWeight: "800", color: is100 ? "#16A34A" : "#DC2626" }}>
-                                        {totalSum.toFixed(1)}%
-                                    </span>
+                            <div style={{display: "flex", gap: "10px", marginBottom: "15px"}}>
+                                <button onClick={reverseColors} style={{flex: 1, padding: "12px", borderRadius: "14px", background: "#F0EEFF", color: "#5B4FD9", fontWeight: "bold", fontSize: "13px"}}>⇄ Szín csere</button>
+                                <button onClick={() => setRows([...rows, {label: "", pct: "", color: "#CBD5E1"}])} style={{flex: 2, padding: "12px", border: "2px dashed #C7D2FE", borderRadius: "16px", background: "none", color: "#5B4FD9", fontWeight: "800", fontSize: "13px"}}>+ Új adatsor</button>
+                            </div>
+
+                            <SectionLabel>4. Megjelenítés & Mentés</SectionLabel>
+                            <div style={{background: isDarkMode ? "#374151" : "#F9F9FB", padding: "20px", borderRadius: "20px", display: "flex", flexDirection: "column", gap: "15px", marginBottom: "25px"}}>
+                                <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                                    <span style={{fontSize: "14px", fontWeight: "600"}}>Százalékjel (%)</span>
+                                    <Toggle value={showPct} onChange={setShowPct} />
                                 </div>
-                                {totalSum > 100 && (
-                                    <div style={{ fontSize: "11px", fontWeight: "700", color: "#DC2626", textAlign: "right" }}>
-                                        ⚠️ Figyelem! Túllépted a 100%-ot!
+                                <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                                    <span style={{fontSize: "14px", fontWeight: "600"}}>Elemszám (n=)</span>
+                                    <Toggle value={showN} onChange={setShowN} />
+                                </div>
+                                {showN && (
+                                    <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
+                                        <input style={inputStyle} type="text" value={n} onChange={(e) => setN(e.target.value)} placeholder="n = ?" />
+                                        <div style={{display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px"}}>
+                                            {[["bf", "BF"],["jf", "JF"],["ba", "BA"],["ja", "JA"]].map(([pos, lbl]) => (
+                                                <button key={pos} onClick={() => setNPos(pos)} style={{
+                                                    padding: "8px 5px", borderRadius: "10px", fontSize: "11px", fontWeight: "800",
+                                                    background: nPos === pos ? "#5B4FD9" : "#E2E2E9", color: nPos === pos ? "#fff" : "#5B4FD9"
+                                                }}>{lbl}</button>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-                            </div>
-                        )}
-
-                        <button onClick={() => setRows([...rows, {label: "", pct: "", color: "#CBD5E1"}])} style={{width: "100%", padding: "14px", border: "2px dashed #C7D2FE", borderRadius: "16px", background: "none", color: "#5B4FD9", fontWeight: "800", fontSize: "13px", marginBottom: "10px"}}>+ Új adatsor</button>
-
-                        <SectionLabel>4. Megjelenítés Beállítások</SectionLabel>
-                        <div style={{background: "#F9F9FB", padding: "20px", borderRadius: "20px", display: "flex", flexDirection: "column", gap: "15px", marginBottom: "25px"}}>
-                            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                                <span style={{fontSize: "14px", fontWeight: "600"}}>Százalékjel (%) látható</span>
-                                <Toggle value={showPct} onChange={setShowPct} />
-                            </div>
-                            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-                                <span style={{fontSize: "14px", fontWeight: "600"}}>Elemszám (n=) látható</span>
-                                <Toggle value={showN} onChange={setShowN} />
-                            </div>
-                            {showN && (
-                                <div style={{marginTop: "5px", display: "flex", flexDirection: "column", gap: "10px"}}>
-                                    <input style={inputStyle} type="text" value={n} onChange={(e) => setN(e.target.value)} placeholder="Minta elemszáma" />
-                                    <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px"}}>
-                                        {[
-                                            ["bf", "BF (Bal Felső)"], ["jf", "JF (Jobb Felső)"],
-                                            ["ba", "BA (Bal Alsó)"], ["ja", "JA (Jobb Alsó)"]
-                                        ].map(([pos, lbl]) => (
-                                            <button key={pos} onClick={() => setNPos(pos)} style={{
-                                                padding: "10px 5px", borderRadius: "10px", fontSize: "11px", fontWeight: "800",
-                                                background: nPos === pos ? "#5B4FD9" : "#E2E2E9", color: nPos === pos ? "#fff" : "#5B4FD9"
+                                <div style={{borderTop: "1px solid rgba(0,0,0,0.05)", pt: "10px", marginTop: "5px"}}>
+                                    <span style={{fontSize: "11px", fontWeight: "800", color: "#8E8EA0", display: "block", marginBottom: "8px"}}>MENTÉS HÁTTERE:</span>
+                                    <div style={{display: "flex", gap: "5px"}}>
+                                        {[["white","Fehér"], ["dark","Sötét"], ["transparent","Nincs"]].map(([mode, lbl]) => (
+                                            <button key={mode} onClick={() => setDownloadMode(mode)} style={{
+                                                flex: 1, padding: "8px 5px", borderRadius: "10px", fontSize: "10px", fontWeight: "800",
+                                                background: downloadMode === mode ? "#5B4FD9" : "#E2E2E9", color: downloadMode === mode ? "#fff" : "#5B4FD9"
                                             }}>{lbl}</button>
                                         ))}
                                     </div>
                                 </div>
-                            )}
+                            </div>
+
+                            <button onClick={handleDownload} style={{width: "100%", padding: "20px", background: "#5B4FD9", color: "#fff", borderRadius: "22px", fontWeight: "900", fontSize: "17px", boxShadow: "0 10px 25px rgba(91, 79, 217, 0.3)"}}>⬇ HD PNG LETÖLTÉSE</button>
                         </div>
 
-                        <button onClick={() => {
-                            const link = document.createElement("a");
-                            link.download = `diagram_nagy_marton.png`;
-                            link.href = canvasRef.current.toDataURL("image/png", 1.0);
-                            link.click();
-                        }} style={{width: "100%", padding: "20px", background: "#5B4FD9", color: "#fff", borderRadius: "22px", fontWeight: "900", fontSize: "17px", boxShadow: "0 10px 25px rgba(91, 79, 217, 0.3)"}}>⬇ HD PNG LETÖLTÉSE</button>
-                    </div>
-
-                    <div className="card" style={{flex: 1, minWidth: "500px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", alignSelf: "flex-start"}}>
-                        <canvas ref={canvasRef} style={{width: "700px", height: "500px", maxWidth: "100%", height: "auto"}} />
-                        <div style={{position: "absolute", top: 20, right: 25, fontSize: "11px", color: "#CBD5E1", fontWeight: "900", letterSpacing: "1px"}}>ULTRA HD RENDER</div>
+                        <div className="card" style={{flex: 1, minWidth: "500px", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", alignSelf: "flex-start"}}>
+                            <canvas ref={canvasRef} style={{width: "700px", height: "500px", maxWidth: "100%", height: "auto"}} />
+                            <div style={{position: "absolute", top: 20, right: 25, fontSize: "11px", color: "#CBD5E1", fontWeight: "900", letterSpacing: "1px"}}>ULTRA HD RENDER</div>
+                        </div>
                     </div>
                 </div>
             );
