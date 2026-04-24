@@ -33,7 +33,7 @@
         const { useState, useRef, useEffect, useCallback } = React;
 
         const CHART_TYPES = [
-            { id: "donut",   label: "Donut",      icon: "◎" },
+            { id: "donut",   label: "Fánk",      icon: "◎" },
             { id: "pie",     label: "Torta",      icon: "⬤" },
             { id: "bar",     label: "Oszlop",     icon: "▐" },
             { id: "hbar",    label: "Sáv",        icon: "▬" },
@@ -78,6 +78,8 @@
             const [showN, setShowN] = useState(true);
             const [showPct, setShowPct] = useState(true);
             const [downloadMode, setDownloadMode] = useState("white"); 
+            const [isMonochrome, setIsMonochrome] = useState(false);
+            const [monoColor, setMonoColor] = useState("#5B4FD9");
             const [rows, setRows] = useState([
                 { label: "Budapest", pct: "70", color: "#3B82F6" },
                 { label: "Vidék", pct: "30", color: "#EF4444" }
@@ -91,10 +93,23 @@
                 }
             }, [isDarkMode]);
 
+            // --- DINAMIKUS VALIDÁCIÓ LOGIKÁJA ---
             const totalSum = rows.reduce((acc, row) => acc + (parseFloat(row.pct) || 0), 0);
+            const targetN = parseFloat(n) || 0;
+            
             const is100 = Math.abs(totalSum - 100) < 0.01;
+            const isSumMatchingN = Math.abs(totalSum - targetN) < 0.01;
+            const hasExceededN = totalSum > targetN;
+
+            const showPctValidator = showPct;
+            const showNValidator = !showPct && showN;
+            const showAnyValidator = showPctValidator || showNValidator;
+
+            const validatorError = showPctValidator ? (totalSum > 100) : hasExceededN;
+            const validatorSuccess = showPctValidator ? is100 : isSumMatchingN;
 
             const reverseColors = () => {
+                if (isMonochrome) return;
                 const newRows = [...rows];
                 const colors = newRows.map(r => r.color).reverse();
                 newRows.forEach((r, i) => r.color = colors[i]);
@@ -102,6 +117,7 @@
             };
 
             const applyPalette = (palette) => {
+                setIsMonochrome(false);
                 const newRows = rows.map((r, i) => ({
                     ...r,
                     color: palette.colors[i % palette.colors.length]
@@ -144,7 +160,8 @@
                 const maxV = Math.max(...pcts, 10);
                 const total = pcts.reduce((a, b) => a + b, 0);
                 const norm = total > 0 ? pcts.map(p => p / total) : pcts.map(() => 1 / valid.length);
-                const colors = valid.map(r => r.color);
+                const colors = valid.map(r => isMonochrome ? monoColor : r.color);
+                
                 const labelText = (v) => showPct ? `${v}%` : v;
                 const textColor = (bgStyle === "white" || (bgStyle === "transparent" && !isDarkMode)) ? "#1A1A1B" : "#F9FAFB";
 
@@ -178,10 +195,13 @@
                         ctx.arc(cx, cy, r, angle, angle + sweep);
                         ctx.fillStyle = colors[i]; ctx.fill();
                         
-                        // Körvonal eltávolítása transparent esetén
                         if (bgStyle !== "transparent") {
                             ctx.strokeStyle = bgStyle; 
                             ctx.lineWidth = 3; 
+                            ctx.stroke();
+                        } else {
+                            ctx.strokeStyle = "rgba(255,255,255,0.8)";
+                            ctx.lineWidth = 2;
                             ctx.stroke();
                         }
                         
@@ -195,7 +215,6 @@
                     
                     if (chartType === "donut") {
                         if (bgStyle === "transparent") {
-                            // Valóban átlátszó lyuk donut-nál
                             ctx.globalCompositeOperation = 'destination-out';
                             ctx.beginPath(); ctx.arc(cx, cy, r * 0.6, 0, 2 * Math.PI);
                             ctx.fillStyle = "rgba(0,0,0,1)";
@@ -274,7 +293,7 @@
                     else if (nPos === "ja") { nx = width - tw - 40; ny = height - 40; }
                     ctx.textAlign = "left"; ctx.fillText(txt, nx, ny);
                 }
-            }, [rows, chartType, n, nPos, showN, showPct, isDarkMode, downloadMode]);
+            }, [rows, chartType, n, nPos, showN, showPct, isDarkMode, downloadMode, isMonochrome, monoColor]);
 
             useEffect(() => draw(), [draw]);
 
@@ -336,48 +355,69 @@
                             </div>
 
                             <SectionLabel>3. Adatok és Színek</SectionLabel>
+                            
+                            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", padding: "12px 15px", background: isDarkMode ? "#374151" : "#F9F9FB", borderRadius: "14px", border: "1px solid rgba(0,0,0,0.05)"}}>
+                                <span style={{fontSize: "13px", fontWeight: "700", color: isDarkMode ? "#F9FAFB" : "#1A1A1B"}}>Egyszínű mód (Monokróm)</span>
+                                <div style={{display: "flex", alignItems: "center", gap: "12px"}}>
+                                    {isMonochrome && (
+                                        <div className="color-picker-wrapper" style={{background: monoColor, width: "26px", height: "26px", borderRadius: "8px", border: "none"}}>
+                                            <input type="color" value={monoColor} onChange={e => setMonoColor(e.target.value)} />
+                                        </div>
+                                    )}
+                                    <Toggle value={isMonochrome} onChange={setIsMonochrome} />
+                                </div>
+                            </div>
+
                             <div className="scroll-area">
                                 {rows.map((r, i) => (
                                     <div key={i} style={{display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center"}}>
-                                        <div className="color-picker-wrapper" style={{background: r.color}}>
-                                            <input type="color" value={r.color} onChange={(e) => {
-                                                const nr = [...rows]; nr[i].color = e.target.value; setRows(nr);
-                                            }} />
-                                        </div>
+                                        {!isMonochrome && (
+                                            <div className="color-picker-wrapper" style={{background: r.color}}>
+                                                <input type="color" value={r.color} onChange={(e) => {
+                                                    const nr = [...rows]; nr[i].color = e.target.value; setRows(nr);
+                                                }} />
+                                            </div>
+                                        )}
+                                        {isMonochrome && (
+                                            <div style={{width: "32px", height: "32px", borderRadius: "10px", background: monoColor, opacity: 0.8, flexShrink: 0}}></div>
+                                        )}
                                         <input style={inputStyle} value={r.label} onChange={(e) => {
                                             const nr = [...rows]; nr[i].label = e.target.value; setRows(nr);
                                         }} placeholder="Név" />
-                                        <input style={{...inputStyle, width: "65px", fontWeight: "bold", textAlign: "center"}} value={r.pct} onChange={(e) => {
+                                        <input style={{...inputStyle, width: "65px", fontWeight: "bold", textAlign: "center", color: validatorError ? "#DC2626" : "inherit"}} value={r.pct} onChange={(e) => {
                                             const nr = [...rows]; nr[i].pct = e.target.value; setRows(nr);
-                                        }} placeholder="%" />
+                                        }} placeholder={showPct ? "%" : "db"} />
                                         <button onClick={() => setRows(rows.filter((_, idx) => idx !== i))} style={{fontSize: "24px", color: "#D1D5DB", background: "none"}}>×</button>
                                     </div>
                                 ))}
                             </div>
 
-                            {showPct && (
+                            {/* DINAMIKUS VALIDÁCIÓS PANEL (Százalék vagy Elemszám) */}
+                            {showAnyValidator && (
                                 <div style={{
                                     marginBottom: "15px", padding: "10px 14px", borderRadius: "14px",
-                                    background: isDarkMode ? "#374151" : "#F9F9FB",
-                                    border: "1px solid", borderColor: totalSum > 100 ? "#DC2626" : "#F0F0F5",
+                                    background: validatorError ? "rgba(220, 38, 38, 0.1)" : (isDarkMode ? "#374151" : "#F9F9FB"),
+                                    border: "1px solid", borderColor: validatorError ? "#DC2626" : "#F0F0F5",
                                     display: "flex", flexDirection: "column", gap: "4px"
                                 }}>
                                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <span style={{ fontSize: "13px", fontWeight: "600", color: isDarkMode ? "#94A3B8" : "#666" }}>Összesen:</span>
-                                        <span style={{ fontSize: "16px", fontWeight: "800", color: is100 ? "#16A34A" : "#DC2626" }}>
-                                            {totalSum.toFixed(1)}%
+                                        <span style={{ fontSize: "13px", fontWeight: "600", color: isDarkMode ? "#94A3B8" : "#666" }}>
+                                            {showPctValidator ? "Összesen:" : "Összes elemszám:"}
+                                        </span>
+                                        <span style={{ fontSize: "16px", fontWeight: "800", color: validatorSuccess ? "#16A34A" : (validatorError ? "#DC2626" : "inherit") }}>
+                                            {showPctValidator ? `${totalSum.toFixed(1)}%` : `${totalSum} / ${targetN}`}
                                         </span>
                                     </div>
-                                    {totalSum > 100 && (
+                                    {validatorError && (
                                         <div style={{ fontSize: "11px", fontWeight: "700", color: "#DC2626", textAlign: "right" }}>
-                                            ⚠️ Figyelem! Túllépted a 100%-ot!
+                                            ⚠️ Figyelem! Túllépted {showPctValidator ? "a 100%-ot" : `a megadott elemszámot (${targetN})`}!
                                         </div>
                                     )}
                                 </div>
                             )}
 
                             <div style={{display: "flex", gap: "10px", marginBottom: "15px"}}>
-                                <button onClick={reverseColors} style={{flex: 1, padding: "12px", borderRadius: "14px", background: "#F0EEFF", color: "#5B4FD9", fontWeight: "bold", fontSize: "13px"}}>⇄ Szín csere</button>
+                                {!isMonochrome && <button onClick={reverseColors} style={{flex: 1, padding: "12px", borderRadius: "14px", background: "#F0EEFF", color: "#5B4FD9", fontWeight: "bold", fontSize: "13px"}}>⇄ Szín csere</button>}
                                 <button onClick={() => setRows([...rows, {label: "", pct: "", color: "#CBD5E1"}])} style={{flex: 2, padding: "12px", border: "2px dashed #C7D2FE", borderRadius: "16px", background: "none", color: "#5B4FD9", fontWeight: "800", fontSize: "13px"}}>+ Új adatsor</button>
                             </div>
 
@@ -393,7 +433,7 @@
                                 </div>
                                 {showN && (
                                     <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
-                                        <input style={inputStyle} type="text" value={n} onChange={(e) => setN(e.target.value)} placeholder="n = ?" />
+                                        <input style={inputStyle} type="text" value={n} onChange={(e) => setN(e.target.value)} placeholder="Minta elemszáma" />
                                         <div style={{display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px"}}>
                                             {[["bf", "BF"],["jf", "JF"],["ba", "BA"],["ja", "JA"]].map(([pos, lbl]) => (
                                                 <button key={pos} onClick={() => setNPos(pos)} style={{
