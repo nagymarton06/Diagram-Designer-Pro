@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagram Designer Pro — Készítette: Nagy Márton</title>
+    <title>Diagramtervező — Készítette: Nagy Márton</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -62,7 +62,7 @@
 
         const i18n = {
             hu: {
-                title: "Diagram Designer Pro",
+                title: "Diagramtervező",
                 creator: "Készítette: Nagy Márton",
                 subtitle: "Precíziós vizualizációs eszköz egyedi felbontással és adatelemzéssel",
                 sec1: "Diagram Típus",
@@ -91,7 +91,7 @@
                 palModern: "Modern", palRetro: "Retro", palForest: "Erdő", palSun: "Napfény", palDeep: "Mélykék", palPurple: "Lila"
             },
             en: {
-                title: "Diagram Designer Pro",
+                title: "Diagram Designer",
                 creator: "Created by: Márton Nagy",
                 subtitle: "Precision visualization tool with custom resolution and data tracking",
                 sec1: "Chart Type",
@@ -314,7 +314,7 @@
                         const bh = (pcts[i] / maxV) * aH, bx = startX + i * sp + (sp - bW) / 2, by = height - 130 - bh;
                         ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.roundRect(bx, by, bW, bh, [8, 8, 0, 0]); ctx.fill();
                         ctx.textAlign = "center"; ctx.fillStyle = textColor; ctx.fillText(labelText(pcts[i]), bx + bW/2, by - 12);
-                        ctx.font = "500 12px 'Plus Jakarta Sans'"; wrapText(row.label, bx + bW/2, height - 100, sp * 0.9, 14); ctx.font = "600 14px 'Plus Jakarta Sans'";
+                        ctx.font = "500 12px 'Plus Jakarta Sans'"; wrapText(row.label, bx + bW/2, height - 100, sp * 0.9, 14); ctx.font = "600 12px 'Plus Jakarta Sans'";
                     });
                 }
                 else if (chartType === "hbar") {
@@ -339,7 +339,7 @@
                         ctx.fillStyle = chartType === "scatter" ? colors[i] : (bgStyle === "transparent" ? (isDarkMode ? "#14161b" : "#fff") : bgStyle);
                         ctx.fill(); ctx.strokeStyle = colors[i]; ctx.lineWidth = 3; ctx.stroke();
                         ctx.textAlign = "center"; ctx.fillStyle = textColor; ctx.fillText(labelText(pcts[i]), x, y - 20);
-                        ctx.font = "500 11px 'Plus Jakarta Sans'"; wrapText(row.label, x, height - PB + 30, (aW/valid.length)*0.9, 13); ctx.font = "600 14px 'Plus Jakarta Sans'";
+                        ctx.font = "500 11px 'Plus Jakarta Sans'"; wrapText(row.label, x, height - PB + 30, (aW/valid.length)*0.9, 13); ctx.font = "600 11px 'Plus Jakarta Sans'";
                     });
                 }
 
@@ -396,10 +396,10 @@
 
                             <div className="flex items-center gap-2">
                                 <div className="inline-flex rounded-xl p-1 bg-zinc-200/75 dark:bg-zinc-900 border border-zinc-300/60 dark:border-zinc-800">
-                                    <button onClick={() => toggleLang('hu')} className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all shadow-sm ${lang === 'hu' ? 'bg-white dark:bg-zinc-800 text-indigo-700 dark:text-indigo-400' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}>
+                                    <button onClick={() => toggleLang()} className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all shadow-sm ${lang === 'hu' ? 'bg-white dark:bg-zinc-800 text-indigo-700 dark:text-indigo-400' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}>
                                         HU
                                     </button>
-                                    <button onClick={() => toggleLang('en')} className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${lang === 'en' ? 'bg-white dark:bg-zinc-800 text-indigo-700 dark:text-indigo-400 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}>
+                                    <button onClick={() => toggleLang()} className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${lang === 'en' ? 'bg-white dark:bg-zinc-800 text-indigo-700 dark:text-indigo-400 shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}>
                                         EN
                                     </button>
                                 </div>
