@@ -31,7 +31,6 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Természetes, visszafogott iOS Frosted Glass stílus */
         .ios-glass {
             background: rgba(18, 20, 26, 0.55);
             backdrop-filter: blur(30px) saturate(160%);
@@ -79,6 +78,13 @@
             box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.25);
         }
 
+        .creator-capsule {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: rgba(224, 231, 255, 0.9);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #09090b; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
@@ -94,11 +100,8 @@
     <script type="text/babel">
         const { useState, useRef, useEffect, useCallback } = React;
 
-        // --- ICONS ---
         const Icons = {
             Chart: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"></path><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"></path></svg>,
-            Sun: () => <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>,
-            Moon: () => <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>,
             Download: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>,
             Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>,
             Layers: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>,
@@ -142,7 +145,7 @@
                 modeLandscape: "Fekvő",
                 modePortrait: "Álló",
                 modeSquare: "1:1 Négyzet",
-                dragHint: "Tipp: A feliratokat közvetlenül megfoghatod és mozgathatod az egérrel a képen!"
+                dragHint: "Tipp: A feliratokat közvetlenül megfoghatod és mozgathatod az egérrel vagy ujjaddal a képen!"
             },
             en: {
                 title: "Diagram Designer",
@@ -201,12 +204,12 @@
         ];
 
         const SectionHeader = ({ icon, title }) => (
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4 mt-2">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-500/15 flex items-center justify-center text-indigo-400">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3.5 mt-1">
+                <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-indigo-500/15 flex items-center justify-center text-indigo-400">
                         {icon}
                     </div>
-                    <h2 className="font-bold text-base text-zinc-100">{title}</h2>
+                    <h2 className="font-bold text-sm sm:text-base text-zinc-100">{title}</h2>
                 </div>
             </div>
         );
@@ -214,7 +217,7 @@
         const Toggle = ({value, onChange}) => (
             <label className="inline-flex items-center cursor-pointer select-none shrink-0">
                 <input type="checkbox" className="sr-only peer" checked={value} onChange={(e) => onChange(e.target.checked)} />
-                <div className={`w-10 h-5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600 shadow-inner ${value ? '' : 'bg-[#27272a]'}`}></div>
+                <div className={`w-9 h-5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-4 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600 shadow-inner ${value ? '' : 'bg-[#27272a]'}`}></div>
             </label>
         );
 
@@ -223,7 +226,6 @@
             const labelBoxesRef = useRef([]);
             const draggingIndexRef = useRef(null);
 
-            const [isDarkMode, setIsDarkMode] = useState(true);
             const [lang, setLang] = useState("hu");
             const [chartType, setChartType] = useState("donut");
             const [n, setN] = useState("200");
@@ -234,14 +236,11 @@
             const [isMonochrome, setIsMonochrome] = useState(false);
             const [monoColor, setMonoColor] = useState("#6366f1");
             
-            // Aktív színséma megőrzése az új sorok automatikus színéhez
             const [currentPaletteColors, setCurrentPaletteColors] = useState(PALETTES("hu")[0].colors);
 
-            // Képarány & Főcsoport (Fekvő, Álló, 1:1)
             const [aspectGroup, setAspectGroup] = useState("landscape");
             const [aspectRatio, setAspectRatio] = useState("16:9");
             
-            // Felbontás: alapértelmezetten a sima HD (2x)
             const [exportScale, setExportScale] = useState(2);
             const [isCustomRes, setIsCustomRes] = useState(false);
             const [customWidth, setCustomWidth] = useState("1920");
@@ -253,11 +252,6 @@
             ]);
 
             const t = i18n[lang];
-
-            useEffect(() => {
-                if (isDarkMode) document.documentElement.classList.add('dark');
-                else document.documentElement.classList.remove('dark');
-            }, [isDarkMode]);
 
             const toggleLang = () => {
                 const newLang = lang === 'hu' ? 'en' : 'hu';
@@ -282,8 +276,6 @@
 
             const totalSum = rows.reduce((acc, row) => acc + (parseFloat(row.pct) || 0), 0);
             const targetN = parseFloat(n) || 0;
-            const is100 = Math.abs(totalSum - 100) < 0.01;
-            const isSumMatchingN = Math.abs(totalSum - targetN) < 0.01;
             const hasExceededN = totalSum > targetN;
             const validatorError = showPct ? (totalSum > 100) : hasExceededN;
 
@@ -305,13 +297,11 @@
                 setRows(newRows);
             };
 
-            // Új adatsor hozzáadása: a paletta soron következő színét kapja automatikusan
             const addNewRow = () => {
                 const nextColor = isMonochrome ? monoColor : currentPaletteColors[rows.length % currentPaletteColors.length];
                 setRows([...rows, { label: "", pct: "", color: nextColor }]);
             };
 
-            // Mozgatott szövegek alaphelyzetbe állítása
             const resetLabelPositions = () => {
                 setRows(rows.map(r => {
                     const { customNormX, customNormY, ...rest } = r;
@@ -319,7 +309,6 @@
                 }));
             };
 
-            // Geometria kiszámítása
             const getDimensions = useCallback(() => {
                 if (isCustomRes) {
                     const cw = Math.max(200, parseInt(customWidth, 10) || 720);
@@ -374,7 +363,6 @@
                     ctx.fillRect(0, 0, baseW, baseH);
                 }
 
-                // Hit-boxok törlése és újraépítése a drag and drop mozgathatósághoz
                 labelBoxesRef.current = [];
 
                 const valid = rows.filter(r => r.label && r.pct !== "");
@@ -387,9 +375,8 @@
                 const colors = valid.map(r => isMonochrome ? monoColor : r.color);
                 const labelText = (v) => showPct ? `${v}%` : v;
                 
-                const textColor = (bgStyle === "#ffffff" || (bgStyle === "transparent" && !isDarkMode)) ? "#18181b" : "#f4f4f5";
+                const textColor = (bgStyle === "#ffffff") ? "#18181b" : "#f4f4f5";
 
-                // Biztonságos szövegkiírás: észleli az érintési dobozt a fogáshoz
                 const renderClampedText = (text, x, y, maxWidth, lineHeight, align = "center", rowIndex = 0) => {
                     const pad = 16;
                     ctx.textAlign = align;
@@ -433,7 +420,6 @@
                         ctx.fillText(l, lx, ly);
                     });
 
-                    // Címke doboz regisztrálása a húzáshoz
                     labelBoxesRef.current.push({
                         index: rowIndex,
                         minX: minBoxX - 8,
@@ -445,7 +431,6 @@
 
                 ctx.font = "600 14px 'Plus Jakarta Sans', sans-serif";
 
-                // 1. Fánk és Torta
                 if (chartType === "donut" || chartType === "pie") {
                     const isPortrait = baseW < baseH;
                     const cx = baseW / 2;
@@ -471,12 +456,10 @@
                         const labelStr = `${valid[i].label} (${labelText(pcts[i])})`;
                         const fullTw = ctx.measureText(labelStr).width;
 
-                        // Ha a felhasználó kézzel elmozgatta, oda rajzoljuk ahova húzta!
                         if (valid[i].customNormX != null && valid[i].customNormY != null) {
                             ctx.fillStyle = colors[i];
                             renderClampedText(labelStr, valid[i].customNormX * baseW, valid[i].customNormY * baseH, Math.min(220, baseW - pad * 2), 16, "center", i);
                         } else {
-                            // Automatikus pozíció
                             const stdDist = r + 38;
                             const stdLx = cx + cosM * stdDist;
                             const stdLy = cy + sinM * stdDist;
@@ -515,7 +498,6 @@
                         }
                     }
                 }
-                // 2. Oszlopdiagram
                 else if (chartType === "bar") {
                     const aW = baseW * 0.78, aH = baseH * 0.52;
                     const sp = aW / Math.max(valid.length, 1);
@@ -540,7 +522,6 @@
                         ctx.font = "600 12px 'Plus Jakarta Sans'";
                     });
                 }
-                // 3. Sávdiagram (Vízszintes)
                 else if (chartType === "hbar") {
                     const PL = Math.max(100, baseW * 0.24), PR = Math.max(60, baseW * 0.16);
                     const aW = baseW - PL - PR;
@@ -548,7 +529,7 @@
                     const startY = (baseH - (valid.length * rowH)) / 2;
                     valid.forEach((row, i) => {
                         const bw = (pcts[i] / maxV) * aW, bH = Math.min(30, rowH * 0.65), by = startY + i * rowH + (rowH - bH) / 2;
-                        ctx.fillStyle = isDarkMode ? "#27272a" : "#f4f4f5"; ctx.beginPath(); ctx.roundRect(PL, by, aW, bH, 8); ctx.fill();
+                        ctx.fillStyle = "#27272a"; ctx.beginPath(); ctx.roundRect(PL, by, aW, bH, 8); ctx.fill();
                         ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.roundRect(PL, by, bw, bH, 8); ctx.fill();
                         
                         ctx.fillStyle = colors[i];
@@ -563,7 +544,6 @@
                         ctx.fillText(labelText(pcts[i]), PL + bw + 15, by + bH/2 + 5);
                     });
                 }
-                // 4. Vonal és Pont
                 else if (chartType === "line" || chartType === "scatter") {
                     const PL = Math.max(60, baseW * 0.12), PR = Math.max(60, baseW * 0.12);
                     const PT = Math.max(60, baseH * 0.15), PB = Math.max(70, baseH * 0.18);
@@ -579,7 +559,7 @@
                     valid.forEach((row, i) => {
                         const x = startX + i * step, y = ys[i];
                         ctx.beginPath(); ctx.arc(x, y, chartType === "scatter" ? 12 : 6, 0, Math.PI * 2);
-                        ctx.fillStyle = chartType === "scatter" ? colors[i] : (bgStyle === "transparent" ? (isDarkMode ? "#12141a" : "#fff") : bgStyle);
+                        ctx.fillStyle = chartType === "scatter" ? colors[i] : (bgStyle === "transparent" ? "#12141a" : bgStyle);
                         ctx.fill(); ctx.strokeStyle = colors[i]; ctx.lineWidth = 3; ctx.stroke();
                         
                         ctx.textAlign = "center"; ctx.fillStyle = textColor; 
@@ -596,9 +576,8 @@
                     });
                 }
 
-                // Mintanagyság (n = ...)
                 if (showN && n) {
-                    ctx.font = "italic 500 15px 'JetBrains Mono'"; ctx.fillStyle = isDarkMode ? "#a1a1aa" : "#71717a";
+                    ctx.font = "italic 500 15px 'JetBrains Mono'"; ctx.fillStyle = "#a1a1aa";
                     const txt = `n = ${n}`, tw = ctx.measureText(txt).width;
                     let nx = Math.max(25, baseW * 0.05);
                     let ny = Math.max(30, baseH * 0.07);
@@ -615,13 +594,12 @@
                     if (ny < 25) ny = 25;
                     ctx.textAlign = "left"; ctx.fillText(txt, nx, ny);
                 }
-            }, [rows, chartType, n, nPos, showN, showPct, isDarkMode, downloadMode, isMonochrome, monoColor, lang, getDimensions]);
+            }, [rows, chartType, n, nPos, showN, showPct, downloadMode, isMonochrome, monoColor, getDimensions]);
 
             useEffect(() => {
                 draw(2);
             }, [draw]);
 
-            // --- DRAG AND DROP MOZGATÁS VEZÉRLÉS ---
             const getCanvasCoords = (clientX, clientY) => {
                 const canvas = canvasRef.current;
                 if (!canvas) return { x: 0, y: 0 };
@@ -688,7 +666,6 @@
                 }, 60);
             };
 
-            // Dinamikus gomb szöveg (HD, UHD, 4K)
             const getDownloadButtonLabel = () => {
                 if (isCustomRes) {
                     return `PNG ${t.btnDownloadBase} (${customWidth}×${customHeight}px)`;
@@ -703,43 +680,41 @@
             };
 
             const hasCustomMovedLabels = rows.some(r => r.customNormX != null);
-            const inputClasses = "w-full ios-input rounded-xl py-2 px-3 text-sm font-medium focus:outline-none";
+            const inputClasses = "w-full ios-input rounded-xl py-2 px-3 text-xs sm:text-sm font-medium focus:outline-none";
 
             return (
                 <div id="app-container" className="flex flex-col min-h-screen">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-                        <div className="absolute -top-16 -left-16 w-[560px] h-[560px] bg-indigo-600/25 rounded-full blur-[140px]"></div>
-                        <div className="absolute top-[650px] -right-24 w-[520px] h-[520px] bg-violet-600/20 rounded-full blur-[150px]"></div>
-                        <div className="absolute -bottom-16 -left-16 w-[600px] h-[600px] bg-indigo-800/20 rounded-full blur-[140px]"></div>
+                        <div className="absolute -top-16 -left-16 w-72 sm:w-[560px] h-72 sm:h-[560px] bg-indigo-600/20 rounded-full blur-[100px] sm:blur-[140px]"></div>
+                        <div className="absolute top-[650px] -right-24 w-72 sm:w-[520px] h-72 sm:h-[520px] bg-violet-600/15 rounded-full blur-[100px] sm:blur-[150px]"></div>
+                        <div className="absolute -bottom-16 -left-16 w-72 sm:w-[600px] h-72 sm:h-[600px] bg-indigo-800/20 rounded-full blur-[100px] sm:blur-[140px]"></div>
                     </div>
 
-                    {/* Fejléc - Letisztult, alcím nélkül */}
+                    {/* Fejléc - Tiszta szegélyű kapszula, sötét-világos téma kapcsoló nélkül */}
                     <header className="sticky top-0 z-30 bg-[#09090b]/40 backdrop-blur-2xl border-b border-white/10 shrink-0">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex items-center gap-3.5">
-                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-400 shadow-inner backdrop-blur-md shrink-0">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-3.5 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+                            <div className="flex items-center gap-2.5 sm:gap-3">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-400 shadow-inner backdrop-blur-md shrink-0">
                                     <Icons.Chart />
                                 </div>
-                                <div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h1 className="text-sm sm:text-base font-bold tracking-tight text-white leading-tight">
-                                            {t.title}
-                                        </h1>
-                                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-400/25">
-                                            {t.creator}
-                                        </span>
-                                    </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h1 className="text-sm sm:text-base font-bold tracking-tight text-white leading-tight whitespace-nowrap">
+                                        {t.title}
+                                    </h1>
+                                    <span className="text-[10px] sm:text-[11px] font-semibold px-2.5 py-0.5 rounded-full creator-capsule inline-flex items-center whitespace-nowrap">
+                                        {t.creator}
+                                    </span>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2.5">
-                                <a href="https://nagymarton06.github.io/Homepage/" className="p-2.5 rounded-xl border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-indigo-400 transition-colors shadow-sm flex items-center justify-center backdrop-blur-md" aria-label="Főoldal" title="Főoldal">
+                            <div className="flex items-center gap-2 sm:gap-2.5">
+                                <a href="https://nagymarton06.github.io/Homepage/" className="p-2 sm:p-2.5 rounded-xl border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-indigo-400 transition-colors shadow-sm flex items-center justify-center backdrop-blur-md" aria-label="Főoldal" title="Főoldal">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                     </svg>
                                 </a>
 
-                                <div className="inline-flex rounded-xl p-1 bg-white/5 border border-white/10 backdrop-blur-lg">
+                                <div className="inline-flex rounded-xl p-0.5 sm:p-1 bg-white/5 border border-white/10 backdrop-blur-lg">
                                     <button onClick={() => toggleLang()} className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${lang === 'hu' ? 'bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}>
                                         HU
                                     </button>
@@ -747,49 +722,45 @@
                                         EN
                                     </button>
                                 </div>
-
-                                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2.5 rounded-xl border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-indigo-400 transition-colors shadow-sm backdrop-blur-md">
-                                    {isDarkMode ? <Icons.Sun /> : <Icons.Moon />}
-                                </button>
                             </div>
                         </div>
                     </header>
 
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative flex-grow">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 relative flex-grow w-full">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-start">
                             
-                            {/* BAL OLDAL - VEZÉRLŐK */}
-                            <div className="lg:col-span-5 space-y-6">
-                                <section className="ios-glass rounded-3xl p-5 sm:p-6 space-y-5">
+                            {/* BAL OLDAL - VEZÉRLŐPULT */}
+                            <div className="lg:col-span-5 space-y-5 sm:space-y-6">
+                                <section className="ios-glass rounded-2xl sm:rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-5">
                                     
                                     <SectionHeader icon={<Icons.Layers />} title={t.sec1} />
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                                         {CHART_TYPES(lang).map(ti => (
                                             <button key={ti.id} onClick={() => setChartType(ti.id)} 
-                                                className={`py-2 px-2 rounded-xl font-semibold text-xs transition-all border ${chartType === ti.id ? "bg-indigo-600/30 border-indigo-500/60 text-white shadow-inner" : "bg-white/[0.03] border-white/10 text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-200"}`}>
+                                                className={`py-2 px-1.5 sm:px-2 rounded-xl font-semibold text-xs transition-all border ${chartType === ti.id ? "bg-indigo-600/30 border-indigo-500/60 text-white shadow-inner" : "bg-white/[0.03] border-white/10 text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-200"}`}>
                                                 {ti.icon} {ti.label}
                                             </button>
                                         ))}
                                     </div>
 
                                     <SectionHeader icon={<Icons.Palette />} title={t.sec2} />
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                                         {PALETTES(lang).map((p, i) => (
-                                            <button key={i} onClick={() => applyPalette(p)} className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-1.5 items-center hover:bg-white/[0.07] hover:border-indigo-500/40 transition-colors">
+                                            <button key={i} onClick={() => applyPalette(p)} className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-1 sm:gap-1.5 items-center hover:bg-white/[0.07] hover:border-indigo-500/40 transition-colors">
                                                 <div className="flex gap-1">
-                                                    {p.colors.slice(0, 4).map((c, ci) => <div key={ci} className="w-2 h-2 rounded-full" style={{background: c}} />)}
+                                                    {p.colors.slice(0, 4).map((c, ci) => <div key={ci} className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full" style={{background: c}} />)}
                                                 </div>
-                                                <span className="text-[10px] font-bold text-zinc-300">{p.name}</span>
+                                                <span className="text-[10px] font-bold text-zinc-300 truncate w-full text-center">{p.name}</span>
                                             </button>
                                         ))}
                                     </div>
 
                                     <SectionHeader icon={<Icons.Settings />} title={t.sec3} />
-                                    <div className="flex justify-between items-center bg-white/[0.03] px-4 py-3 rounded-xl border border-white/10">
-                                        <span className="text-sm font-semibold text-zinc-200">{t.mono}</span>
-                                        <div className="flex items-center gap-3">
+                                    <div className="flex justify-between items-center bg-white/[0.03] px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-white/10">
+                                        <span className="text-xs sm:text-sm font-semibold text-zinc-200">{t.mono}</span>
+                                        <div className="flex items-center gap-2.5 sm:gap-3">
                                             {isMonochrome && (
-                                                <div className="w-6 h-6 rounded-md color-picker-wrapper shadow-sm border border-white/20" style={{background: monoColor}}>
+                                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md color-picker-wrapper shadow-sm border border-white/20" style={{background: monoColor}}>
                                                     <input type="color" value={monoColor} onChange={e => setMonoColor(e.target.value)} />
                                                 </div>
                                             )}
@@ -797,46 +768,46 @@
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-2.5 sm:space-y-3">
                                         {rows.map((r, i) => (
-                                            <div key={i} className="flex gap-2 items-center">
+                                            <div key={i} className="flex gap-1.5 sm:gap-2 items-center">
                                                 {!isMonochrome ? (
-                                                    <div className="w-9 h-9 rounded-xl color-picker-wrapper shadow-sm border border-white/20 shrink-0" style={{background: r.color}}>
+                                                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl color-picker-wrapper shadow-sm border border-white/20 shrink-0" style={{background: r.color}}>
                                                         <input type="color" value={r.color} onChange={(e) => {
                                                             const nr = [...rows]; nr[i].color = e.target.value; setRows(nr);
                                                         }} />
                                                     </div>
                                                 ) : (
-                                                    <div className="w-9 h-9 rounded-xl shadow-sm opacity-90 shrink-0 border border-white/10" style={{background: monoColor}}></div>
+                                                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl shadow-sm opacity-90 shrink-0 border border-white/10" style={{background: monoColor}}></div>
                                                 )}
                                                 <input className={inputClasses} value={r.label} onChange={(e) => {
                                                     const nr = [...rows]; nr[i].label = e.target.value; setRows(nr);
                                                 }} placeholder={t.placeholderName} />
-                                                <div className="relative w-20 shrink-0">
-                                                    <input className={`${inputClasses} pr-7 text-right ${validatorError ? "text-rose-400 border-rose-500/60" : "font-mono"}`} value={r.pct} onChange={(e) => {
+                                                <div className="relative w-16 sm:w-20 shrink-0">
+                                                    <input className={`${inputClasses} pr-5 sm:pr-7 text-right ${validatorError ? "text-rose-400 border-rose-500/60" : "font-mono"}`} value={r.pct} onChange={(e) => {
                                                         const nr = [...rows]; nr[i].pct = e.target.value; setRows(nr);
                                                     }} />
-                                                    <span className="absolute right-2.5 top-2 text-xs font-bold text-zinc-500 pointer-events-none">{showPct ? "%" : "x"}</span>
+                                                    <span className="absolute right-2 top-2 text-[10px] sm:text-xs font-bold text-zinc-500 pointer-events-none">{showPct ? "%" : "x"}</span>
                                                 </div>
-                                                <button onClick={() => setRows(rows.filter((_, idx) => idx !== i))} className="p-2 text-zinc-500 hover:text-rose-400 transition-colors"><Icons.Trash /></button>
+                                                <button onClick={() => setRows(rows.filter((_, idx) => idx !== i))} className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors shrink-0"><Icons.Trash /></button>
                                             </div>
                                         ))}
                                     </div>
 
                                     {totalSum > 0 && (
-                                        <div className={`p-3 rounded-xl border flex items-center justify-between ${validatorError ? "bg-rose-500/10 border-rose-500/30 text-rose-300" : "bg-indigo-500/10 border-indigo-500/30 text-indigo-300"}`}>
-                                            <span className="text-xs font-semibold">
+                                        <div className={`p-2.5 sm:p-3 rounded-xl border flex items-center justify-between ${validatorError ? "bg-rose-500/10 border-rose-500/30 text-rose-300" : "bg-indigo-500/10 border-indigo-500/30 text-indigo-300"}`}>
+                                            <span className="text-[11px] sm:text-xs font-semibold">
                                                 {validatorError ? (showPct ? t.warning100 : t.warningN) : (showPct ? t.total : t.totalN)}
                                             </span>
-                                            <span className="text-sm font-bold font-mono">
+                                            <span className="text-xs sm:text-sm font-bold font-mono">
                                                 {showPct ? `${totalSum.toFixed(1)}%` : `${totalSum} / ${targetN}`}
                                             </span>
                                         </div>
                                     )}
 
                                     <div className="flex flex-wrap gap-2">
-                                        {!isMonochrome && <button onClick={reverseColors} className="flex-1 py-2.5 rounded-xl bg-white/[0.04] text-zinc-300 font-semibold text-xs border border-white/10 hover:bg-white/[0.08] transition-colors">{t.btnReverse}</button>}
-                                        <button onClick={addNewRow} className="flex-[2] py-2.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 transition-colors">{t.btnAdd}</button>
+                                        {!isMonochrome && <button onClick={reverseColors} className="flex-1 py-2 sm:py-2.5 rounded-xl bg-white/[0.04] text-zinc-300 font-semibold text-xs border border-white/10 hover:bg-white/[0.08] transition-colors">{t.btnReverse}</button>}
+                                        <button onClick={addNewRow} className="flex-[2] py-2 sm:py-2.5 rounded-xl border border-dashed border-indigo-500/40 text-indigo-400 font-bold text-xs hover:bg-indigo-500/10 transition-colors">{t.btnAdd}</button>
                                         {hasCustomMovedLabels && (
                                             <button onClick={resetLabelPositions} className="w-full py-2 rounded-xl bg-white/[0.02] text-zinc-400 hover:text-zinc-200 font-medium text-xs border border-white/5 hover:border-white/10 transition-colors flex items-center justify-center gap-1.5">
                                                 {t.btnResetPos}
@@ -845,19 +816,19 @@
                                     </div>
 
                                     <SectionHeader icon={<Icons.Download />} title={t.sec4} />
-                                    <div className="space-y-4 bg-white/[0.03] p-4 rounded-xl border border-white/10">
+                                    <div className="space-y-3.5 sm:space-y-4 bg-white/[0.03] p-3.5 sm:p-4 rounded-xl border border-white/10">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm font-semibold text-zinc-300">{t.showPct}</span>
+                                            <span className="text-xs sm:text-sm font-semibold text-zinc-300">{t.showPct}</span>
                                             <Toggle value={showPct} onChange={setShowPct} />
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-sm font-semibold text-zinc-300">{t.showN}</span>
+                                            <span className="text-xs sm:text-sm font-semibold text-zinc-300">{t.showN}</span>
                                             <Toggle value={showN} onChange={setShowN} />
                                         </div>
                                         {showN && (
                                             <div className="pt-2 border-t border-white/10">
                                                 <input className={`${inputClasses} mb-2`} type="text" value={n} onChange={(e) => setN(e.target.value)} placeholder={t.placeholderN} />
-                                                <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10">
+                                                <div className="grid grid-cols-4 gap-1 sm:gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10">
                                                     {(lang === 'hu' ? [['bf', 'BF'],['jf', 'JF'],['ba', 'BA'],['ja', 'JA']] : [['tl', 'TL'],['tr', 'TR'],['bl', 'BL'],['br', 'BR']]).map(([p, l]) => (
                                                         <button key={p} onClick={() => setNPos(p)} className={`py-1.5 text-[11px] font-bold rounded-lg transition-all ${nPos === p ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>{l}</button>
                                                     ))}
@@ -865,54 +836,52 @@
                                             </div>
                                         )}
 
-                                        {/* KÉPARÁNY: EMOJIK NÉLKÜL, TISZTA 2 LÉPCSŐS FÜLEKKEL */}
+                                        {/* KÉPARÁNY */}
                                         <div className="pt-3 border-t border-white/10">
                                             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 block">{t.aspectRatioLabel}</span>
                                             
-                                            {/* 1. Lépcső: Fő kategóriák (Emojik nélkül) */}
-                                            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10 mb-2">
-                                                <button onClick={() => { setAspectGroup("landscape"); setAspectRatio("16:9"); setIsCustomRes(false); }} className={`py-2 text-xs font-bold rounded-lg transition-all ${aspectGroup === "landscape" && !isCustomRes ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>
+                                            <div className="grid grid-cols-3 gap-1 sm:gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10 mb-2">
+                                                <button onClick={() => { setAspectGroup("landscape"); setAspectRatio("16:9"); setIsCustomRes(false); }} className={`py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-lg transition-all ${aspectGroup === "landscape" && !isCustomRes ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>
                                                     {t.modeLandscape}
                                                 </button>
-                                                <button onClick={() => { setAspectGroup("portrait"); setAspectRatio("9:16"); setIsCustomRes(false); }} className={`py-2 text-xs font-bold rounded-lg transition-all ${aspectGroup === "portrait" && !isCustomRes ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>
+                                                <button onClick={() => { setAspectGroup("portrait"); setAspectRatio("9:16"); setIsCustomRes(false); }} className={`py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-lg transition-all ${aspectGroup === "portrait" && !isCustomRes ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>
                                                     {t.modePortrait}
                                                 </button>
-                                                <button onClick={() => { setAspectGroup("square"); setAspectRatio("1:1"); setIsCustomRes(false); }} className={`py-2 text-xs font-bold rounded-lg transition-all ${aspectGroup === "square" && !isCustomRes ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>
+                                                <button onClick={() => { setAspectGroup("square"); setAspectRatio("1:1"); setIsCustomRes(false); }} className={`py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-lg transition-all ${aspectGroup === "square" && !isCustomRes ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>
                                                     {t.modeSquare}
                                                 </button>
                                             </div>
 
-                                            {/* 2. Lépcső: Kategória almenü */}
                                             {aspectGroup === "landscape" && !isCustomRes && (
-                                                <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-white/[0.02] border border-white/5">
+                                                <div className="grid grid-cols-3 gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.02] border border-white/5">
                                                     {[["16:9", "16:9 (Alap)"], ["4:3", "4:3"], ["21:9", "21:9"]].map(([r, lbl]) => (
-                                                        <button key={r} onClick={() => setAspectRatio(r)} className={`py-1.5 text-[11px] font-bold rounded-lg transition-all ${aspectRatio === r ? "bg-indigo-600/30 text-indigo-200 border border-indigo-500/40" : "text-zinc-400 hover:text-white"}`}>{lbl}</button>
+                                                        <button key={r} onClick={() => setAspectRatio(r)} className={`py-1.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all ${aspectRatio === r ? "bg-indigo-600/30 text-indigo-200 border border-indigo-500/40" : "text-zinc-400 hover:text-white"}`}>{lbl}</button>
                                                     ))}
                                                 </div>
                                             )}
 
                                             {aspectGroup === "portrait" && !isCustomRes && (
-                                                <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-white/[0.02] border border-white/5">
+                                                <div className="grid grid-cols-3 gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/[0.02] border border-white/5">
                                                     {[["9:16", "9:16 Story"], ["4:5", "4:5 Insta"], ["3:4", "3:4 Portré"]].map(([r, lbl]) => (
-                                                        <button key={r} onClick={() => setAspectRatio(r)} className={`py-1.5 text-[11px] font-bold rounded-lg transition-all ${aspectRatio === r ? "bg-indigo-600/30 text-indigo-200 border border-indigo-500/40" : "text-zinc-400 hover:text-white"}`}>{lbl}</button>
+                                                        <button key={r} onClick={() => setAspectRatio(r)} className={`py-1.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all ${aspectRatio === r ? "bg-indigo-600/30 text-indigo-200 border border-indigo-500/40" : "text-zinc-400 hover:text-white"}`}>{lbl}</button>
                                                     ))}
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* FELBONTÁS (MINŐSÉG) - HD az alapértelmezett */}
+                                        {/* FELBONTÁS */}
                                         <div className="pt-3 border-t border-white/10">
                                             <div className="flex justify-between items-center mb-2">
                                                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t.resolutionLabel}</span>
-                                                <button onClick={() => setIsCustomRes(!isCustomRes)} className={`text-[11px] font-bold px-2 py-0.5 rounded-md transition-colors ${isCustomRes ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/40' : 'text-zinc-400 hover:text-zinc-200'}`}>
+                                                <button onClick={() => setIsCustomRes(!isCustomRes)} className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md transition-colors ${isCustomRes ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/40' : 'text-zinc-400 hover:text-zinc-200'}`}>
                                                     {t.customResLabel}
                                                 </button>
                                             </div>
 
                                             {!isCustomRes ? (
-                                                <div className="grid grid-cols-4 gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10">
+                                                <div className="grid grid-cols-4 gap-1 sm:gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10">
                                                     {[[1, "1x SD"], [2, "2x HD"], [3, "3x UHD"], [4, "4x 4K"]].map(([sc, lbl]) => (
-                                                        <button key={sc} onClick={() => setExportScale(sc)} className={`py-1.5 text-[11px] font-bold rounded-lg transition-all ${exportScale === sc ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>{lbl}</button>
+                                                        <button key={sc} onClick={() => setExportScale(sc)} className={`py-1.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all ${exportScale === sc ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>{lbl}</button>
                                                     ))}
                                                 </div>
                                             ) : (
@@ -931,24 +900,23 @@
 
                                         <div className="pt-3 border-t border-white/10">
                                             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 block">{t.saveBg}</span>
-                                            <div className="flex gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10">
+                                            <div className="flex gap-1 sm:gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10">
                                                 {[["white", t.bgWhite], ["dark", t.bgDark], ["transparent", t.bgNone]].map(([m, l]) => (
-                                                    <button key={m} onClick={() => setDownloadMode(m)} className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg transition-all ${downloadMode === m ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>{l}</button>
+                                                    <button key={m} onClick={() => setDownloadMode(m)} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded-lg transition-all ${downloadMode === m ? "bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 shadow-sm" : "text-zinc-400 hover:text-white"}`}>{l}</button>
                                                 ))}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* DINAMIKUS LETÖLTŐ GOMB: HD / UHD / 4K */}
-                                    <button onClick={handleDownload} className="w-full py-3.5 rounded-xl btn-indigo-glass text-indigo-200 font-bold text-sm shadow-md transition-all flex justify-center items-center gap-2">
+                                    <button onClick={handleDownload} className="w-full py-3 sm:py-3.5 rounded-xl btn-indigo-glass text-indigo-200 font-bold text-xs sm:text-sm shadow-md transition-all flex justify-center items-center gap-2">
                                         <Icons.Download /> {getDownloadButtonLabel()}
                                     </button>
                                 </section>
                             </div>
 
                             {/* JOBB OLDAL - RAGADÓS CANVAS + MOZGATÁSI INTERAKCIÓ */}
-                            <div className="lg:col-span-7 space-y-3 order-first lg:order-last lg:sticky lg:top-24 z-10">
-                                <section className={`ios-glass rounded-3xl p-3 sm:p-5 flex items-center justify-center min-h-[420px] transition-all overflow-hidden ${downloadMode === 'white' ? 'bg-white/95' : (downloadMode === 'dark' ? 'bg-[#12141a]/90' : 'bg-white/[0.02] border-dashed border-white/15')}`}>
+                            <div className="lg:col-span-7 space-y-2.5 sm:space-y-3 order-first lg:order-last lg:sticky lg:top-24 z-10">
+                                <section className={`ios-glass rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex items-center justify-center min-h-[260px] sm:min-h-[420px] transition-all overflow-hidden ${downloadMode === 'white' ? 'bg-white/95' : (downloadMode === 'dark' ? 'bg-[#12141a]/90' : 'bg-white/[0.02] border-dashed border-white/15')}`}>
                                     <canvas 
                                         ref={canvasRef} 
                                         onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
@@ -965,7 +933,7 @@
                                         className="max-w-full h-auto drop-shadow-sm rounded-lg select-none" 
                                     />
                                 </section>
-                                <p className="text-[11px] text-zinc-500 text-center flex items-center justify-center gap-1.5">
+                                <p className="text-[10px] sm:text-[11px] text-zinc-500 text-center flex items-center justify-center gap-1.5 px-2">
                                     <Icons.Move /> {t.dragHint}
                                 </p>
                             </div>
@@ -973,7 +941,7 @@
                         </div>
                     </main>
 
-                    <footer className="p-4 sm:p-5 text-center text-xs text-zinc-500 border-t border-white/10 bg-[#09090b]/40 backdrop-blur-xl mt-6 shrink-0">
+                    <footer className="p-4 sm:p-5 text-center text-[11px] sm:text-xs text-zinc-500 border-t border-white/10 bg-[#09090b]/40 backdrop-blur-xl mt-6 shrink-0">
                         <span>© 2026 Nagy Márton. Minden jog fenntartva.</span>
                     </footer>
                 </div>
